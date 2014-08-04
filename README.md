@@ -10,7 +10,7 @@ Features
 
 * Both Fahrenheit and Celsius versions
 * PI control of heating output
-* Selectable time period (1, 
+* Selectable time period (1, 2, 4, 8, 16, 32 or 64 secs)
 * Up to 6 profiles with up to 10 setpoints.
 * Each setpoint can be held for 1-999 minutes (i.e. up to ~16 hours).
 * Somewhat intuitive menus for configuring

@@ -380,7 +380,7 @@ void button_menu_fsm(){
 				config_item = (config_item == 0) ? 18 : config_item-1;
 			} else {
 				config_item = (config_item == 0) ? SET_OPT_POWER_ON-1 : config_item-1;
-				if(config_item == SET_OPT_CURRENT_STEP && (unsigned char)eeprom_read_config(EEADR_RUN_MODE) >= 6){
+				if(config_item == SET_OPT_CURRENT_STEP_DURATION && (unsigned char)eeprom_read_config(EEADR_RUN_MODE) >= 6){
 					config_item -= 2;
 				}
 			}
