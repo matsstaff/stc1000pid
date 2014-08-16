@@ -1,5 +1,5 @@
 CC=sdcc
-CFLAGS_C=--use-non-free -mpic14 -p16f1828 --opt-code-size --no-pcode-opt --stack-size 8
+CFLAGS_C=--use-non-free -mpic14 -p16f1828 --opt-code-size --no-pcode-opt --stack-size 12
 CFLAGS_F=$(CFLAGS_C) -DFAHRENHEIT
 OUTDIR=build
 DEPS = stc1000pi.h

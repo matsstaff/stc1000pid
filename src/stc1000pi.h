@@ -89,8 +89,8 @@
     _(St, 	LED_S, 	LED_t, 	LED_OFF, 	0,				8,					0,		0)		\
     _(dh, 	LED_d, 	LED_h, 	LED_OFF, 	0,				999,				0,		0)		\
     _(Pd, 	LED_P, 	LED_d, 	LED_OFF, 	0,				6,					2,		0)		\
-    _(cP, 	LED_c, 	LED_P, 	LED_OFF, 	0,				128,				16,		8)		\
-    _(cI, 	LED_c, 	LED_I, 	LED_OFF, 	0,				64,					2,		1)		\
+    _(cP, 	LED_c, 	LED_P, 	LED_OFF, 	0,				999,				128,	64)	\
+    _(cI, 	LED_c, 	LED_I, 	LED_OFF, 	0,				99,					8,		4)		\
     _(OP, 	LED_O, 	LED_P, 	LED_OFF, 	0,				255,				127,	127)	\
     _(OL, 	LED_O, 	LED_L, 	LED_OFF, 	0,				255,				0,		0)		\
     _(OH, 	LED_O, 	LED_H, 	LED_OFF, 	0,				255,				255,	255)	\

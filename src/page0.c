@@ -235,7 +235,7 @@ static void update_profile(){
 			eeprom_write_config(EEADR_SET_MENU_ITEM(SP), profile_next_step_sp);
 			// Is this the last step (next step is number 9 or next step duration is 0)?
 			if (curr_step == 8 || eeprom_read_config(profile_step_eeaddr + 3) == 0) {
-				// Switch to thermostat mode.
+				// Switch to constant temp mode.
 				eeprom_write_config(EEADR_SET_MENU_ITEM(rn), CONSTANT_TEMPERATURE_MODE);
 				return; // Fastest way out...
 			}
@@ -254,51 +254,51 @@ static void update_profile(){
  * properly, so the variables below were moved from temperature_control()
  * and made global.
  */
-int integral=0;
-unsigned char output=0;
+long integral=0;
+unsigned volatile char output=0;
 
 static void pi_control(int temperature){
-	int tmp_out;
-	int tmp_v;
+	long tmp_out;
+	long tmp_v;
 
 	if(eeprom_read_config(EEADR_SET_MENU_ITEM(rn)) <= 6){
 
-		tmp_out = ((int)eeprom_read_config(EEADR_SET_MENU_ITEM(SP)) - temperature);	// calc error
+		tmp_out = ((long)eeprom_read_config(EEADR_SET_MENU_ITEM(SP)) - (long)temperature);	// calc error
 
 		// Clamp error
-		if(tmp_out > 127){
-			tmp_out = 127;
-		}else if(tmp_out < -127){
-			tmp_out = -127;
-		}
+//		if(tmp_out > 127){
+//			tmp_out = 127;
+//		}else if(tmp_out < -127){
+//			tmp_out = -127;
+//		}
 
-		integral += (eeprom_read_config(EEADR_SET_MENU_ITEM(cI)) * tmp_out);	// Update integral
-		tmp_out *= eeprom_read_config(EEADR_SET_MENU_ITEM(cP));	// P
+		integral += (((long)eeprom_read_config(EEADR_SET_MENU_ITEM(cI))) * tmp_out);	// Update integral
+		tmp_out *= ((long)eeprom_read_config(EEADR_SET_MENU_ITEM(cP)));	// P
 
 		tmp_out += integral; // I
 //		tmp_out += eeprom_read_config(EEADR_KD) * (last_temperature - temperature); // D
 
 		// Clamp output and integral
-		tmp_v = eeprom_read_config(EEADR_SET_MENU_ITEM(OH)) << 6;
+		tmp_v = ((long)eeprom_read_config(EEADR_SET_MENU_ITEM(OH))) << 8;
 		if(tmp_out > tmp_v){
 			integral -= (tmp_out - tmp_v);
 			tmp_out = tmp_v;
 		}
-		tmp_v = eeprom_read_config(EEADR_SET_MENU_ITEM(OL)) << 6;
+		tmp_v = ((long)eeprom_read_config(EEADR_SET_MENU_ITEM(OL))) << 8;
 		if(tmp_out < tmp_v){
 			integral += (tmp_v - tmp_out);
 			tmp_out = tmp_v;
 		}
 
-		tmp_out >>= 6;
+		tmp_out >>= 8;
 
-		if((unsigned char)tmp_out < (unsigned char)eeprom_read_config(EEADR_SET_MENU_ITEM(OL))){
-			tmp_out = (unsigned char)eeprom_read_config(EEADR_SET_MENU_ITEM(OL));
-		}
-
-		if((unsigned char)tmp_out > (unsigned char)eeprom_read_config(EEADR_SET_MENU_ITEM(OH))){
-			tmp_out = (unsigned char)eeprom_read_config(EEADR_SET_MENU_ITEM(OH));
-		}
+//		if((unsigned char)tmp_out < (unsigned char)eeprom_read_config(EEADR_SET_MENU_ITEM(OL))){
+//			tmp_out = (unsigned char)eeprom_read_config(EEADR_SET_MENU_ITEM(OL));
+//		}
+//
+//		if((unsigned char)tmp_out > (unsigned char)eeprom_read_config(EEADR_SET_MENU_ITEM(OH))){
+//			tmp_out = (unsigned char)eeprom_read_config(EEADR_SET_MENU_ITEM(OH));
+//		}
 
 		// Remember last input
 //		last_temperature = temperature;
@@ -306,7 +306,6 @@ static void pi_control(int temperature){
 		tmp_out = eeprom_read_config(EEADR_SET_MENU_ITEM(OP));
 	}
 
-    // Update output (16-bit, need to disable interrupts)
     output = (unsigned char)tmp_out;
 }
 
