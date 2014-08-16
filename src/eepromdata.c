@@ -20,29 +20,24 @@
  *
  */
 
+#include "stc1000pi.h"
+
+
+#define EEPROM_DEFAULTS_F(name, led10ch, led1ch, led01ch, minv, maxv, dvc, dvf) \
+    dvf,
+#define EEPROM_DEFAULTS_C(name, led10ch, led1ch, led01ch, minv, maxv, dvc, dvf) \
+    dvc,
+
 /* Initial EEPROM data, note temperatures are multiplied by 10 (for 1 decimal point precision) */
 #ifdef FAHRENHEIT
 	__code const int __at(0xF000) eedata[] = {
 			600, 24, 620, 24, 640, 24, 660, 24, 680, 144, 770, 48, 400, 0, 0, 0, 0, 0, 0, // Pr0 (SP0, dh0, ..., dh8, SP9)
-			600, 24, 620, 24, 640, 24, 660, 24, 680, 144, 770, 48, 400, 0, 0, 0, 0, 0, 0, // Pr0 (SP0, dh0, ..., dh8, SP9)
-			600, 24, 620, 24, 640, 24, 660, 24, 680, 144, 770, 48, 400, 0, 0, 0, 0, 0, 0, // Pr0 (SP0, dh0, ..., dh8, SP9)
-			600, 24, 620, 24, 640, 24, 660, 24, 680, 144, 770, 48, 400, 0, 0, 0, 0, 0, 0, // Pr0 (SP0, dh0, ..., dh8, SP9)
-			600, 24, 620, 24, 640, 24, 660, 24, 680, 144, 770, 48, 400, 0, 0, 0, 0, 0, 0, // Pr0 (SP0, dh0, ..., dh8, SP9)
-			600, 24, 620, 24, 640, 24, 660, 24, 680, 144, 770, 48, 400, 0, 0, 0, 0, 0, 0, // Pr0 (SP0, dh0, ..., dh8, SP9)
-			0, // Temp correction (temperature * 10)
-			680, // Setpoint (temperature * 10)
-			0, // Current step (0-8)
-			0, // Current step duration (0-999 minutes)
-			1, // Period time (1=1s)
-			64, // KP
-			8, // KI
-//			2, // KD
-			127, // Output
-			0, // Output min
-			255, // Output max
-//			1, // Ramping
-			6, // Run mode (0-5 = running profile 0-5, 6 = constant temp, 7 = constant output)
-			1 // Power on
+			600, 24, 620, 24, 640, 24, 660, 24, 680, 144, 770, 48, 400, 0, 0, 0, 0, 0, 0, // Pr1 (SP0, dh0, ..., dh8, SP9)
+			600, 24, 620, 24, 640, 24, 660, 24, 680, 144, 770, 48, 400, 0, 0, 0, 0, 0, 0, // Pr2 (SP0, dh0, ..., dh8, SP9)
+			600, 24, 620, 24, 640, 24, 660, 24, 680, 144, 770, 48, 400, 0, 0, 0, 0, 0, 0, // Pr3 (SP0, dh0, ..., dh8, SP9)
+			600, 24, 620, 24, 640, 24, 660, 24, 680, 144, 770, 48, 400, 0, 0, 0, 0, 0, 0, // Pr4 (SP0, dh0, ..., dh8, SP9)
+			600, 24, 620, 24, 640, 24, 660, 24, 680, 144, 770, 48, 400, 0, 0, 0, 0, 0, 0, // Pr5 (SP0, dh0, ..., dh8, SP9)
+			SET_MENU_DATA(EEPROM_DEFAULTS_F)
 };
 #else // CELSIUS
 	__code const int __at(0xF000) eedata[] = {
@@ -52,19 +47,6 @@
 			160, 24, 170, 24, 180, 24, 190, 24, 200, 144, 250, 48, 40, 0, 0, 0, 0, 0, 0, // Pr3 (SP0, dh0, ..., dh8, SP9)
 			160, 24, 170, 24, 180, 24, 190, 24, 200, 144, 250, 48, 40, 0, 0, 0, 0, 0, 0, // Pr4 (SP0, dh0, ..., dh8, SP9)
 			160, 24, 170, 24, 180, 24, 190, 24, 200, 144, 250, 48, 40, 0, 0, 0, 0, 0, 0, // Pr5 (SP0, dh0, ..., dh8, SP9)
-			0, // Temp correction (temperature * 10)
-			240, // Setpoint (temperature * 10)
-			0, // Current step (0-8)
-			0, // Current step duration (0-999 minutes)
-			1, // Period time (1=1s)
-			64, // KP
-			8, // KI
-//			2, // KD
-			127, // Output
-			0, // Output min
-			255, // Output max
-//			1, // Ramping
-			6, // Run mode (0-5 = running profile 0-5, 6 = constant temp, 7 = constant output)
-			1 // Power on
+			SET_MENU_DATA(EEPROM_DEFAULTS_C)
 	};
 #endif
