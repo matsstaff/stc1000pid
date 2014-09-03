@@ -130,7 +130,8 @@ enum set_menu_enum {
 #define LED_7	0x37
 #define LED_8	0x1
 #define LED_9	0x21
-#define LED_A	0x5
+#define LED_A	0x11
+#define LED_a	0x5
 #define LED_b	0xc1
 #define LED_C	0x4b
 #define LED_c	0xcd
