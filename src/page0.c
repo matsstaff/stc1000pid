@@ -256,52 +256,37 @@ static void update_profile(){
  */
 long integral=0;
 unsigned volatile char output=0;
-
+#ifdef FAHRENHEIT
+#define PI_SCALE	12
+#else
+#define PI_SCALE	11
+#endif
 static void pi_control(int temperature){
 	long tmp_out;
-	long tmp_v;
 
 	if(eeprom_read_config(EEADR_SET_MENU_ITEM(rn)) <= 6){
+		long tmp_v;
+		int error = eeprom_read_config(EEADR_SET_MENU_ITEM(SP)) - temperature;
 
-		tmp_out = ((long)eeprom_read_config(EEADR_SET_MENU_ITEM(SP)) - (long)temperature);	// calc error
-
-		// Clamp error
-//		if(tmp_out > 127){
-//			tmp_out = 127;
-//		}else if(tmp_out < -127){
-//			tmp_out = -127;
-//		}
-
-		integral += (((long)eeprom_read_config(EEADR_SET_MENU_ITEM(cI))) * tmp_out);	// Update integral
-		tmp_out *= ((long)eeprom_read_config(EEADR_SET_MENU_ITEM(cP)));	// P
+		integral += ((long)eeprom_read_config(EEADR_SET_MENU_ITEM(cI)) * error);	// Update integral
+		tmp_out = ((long)eeprom_read_config(EEADR_SET_MENU_ITEM(cP)) * error) << 3;	// P
 
 		tmp_out += integral; // I
-//		tmp_out += eeprom_read_config(EEADR_KD) * (last_temperature - temperature); // D
 
 		// Clamp output and integral
-		tmp_v = ((long)eeprom_read_config(EEADR_SET_MENU_ITEM(OH))) << 8;
+		tmp_v = ((long)eeprom_read_config(EEADR_SET_MENU_ITEM(OH))) << PI_SCALE;
 		if(tmp_out > tmp_v){
 			integral -= (tmp_out - tmp_v);
 			tmp_out = tmp_v;
 		}
-		tmp_v = ((long)eeprom_read_config(EEADR_SET_MENU_ITEM(OL))) << 8;
+		tmp_v = ((long)eeprom_read_config(EEADR_SET_MENU_ITEM(OL))) << PI_SCALE;
 		if(tmp_out < tmp_v){
 			integral += (tmp_v - tmp_out);
 			tmp_out = tmp_v;
 		}
 
-		tmp_out >>= 8;
+		tmp_out >>= PI_SCALE;
 
-//		if((unsigned char)tmp_out < (unsigned char)eeprom_read_config(EEADR_SET_MENU_ITEM(OL))){
-//			tmp_out = (unsigned char)eeprom_read_config(EEADR_SET_MENU_ITEM(OL));
-//		}
-//
-//		if((unsigned char)tmp_out > (unsigned char)eeprom_read_config(EEADR_SET_MENU_ITEM(OH))){
-//			tmp_out = (unsigned char)eeprom_read_config(EEADR_SET_MENU_ITEM(OH));
-//		}
-
-		// Remember last input
-//		last_temperature = temperature;
 	} else {
 		tmp_out = eeprom_read_config(EEADR_SET_MENU_ITEM(OP));
 	}
@@ -434,8 +419,11 @@ static void interrupt_service_routine(void) __interrupt 0 {
 			cv = output;
 		}
 
-		LATA5 = (counter <= cv) && cv;
+		LATA5 = (counter <= cv) && cv && TMR4ON;
 		led_e.e_heat = !LATA5;
+
+		LATA4 = TMR4ON;
+		led_e.e_cool = !LATA4;
 
 		// Reset timer flag
 		TMR2IF = 0;
