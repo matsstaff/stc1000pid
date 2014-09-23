@@ -3441,12 +3441,11 @@ function pid(temp){
 	var error = (Math.round(sp * 10.0) - Math.round(temp*10.0)); // Error
 
 	integral += ki * error;
-
-	output = integral + kp*error;
+	output = integral + ((kp*error)<<2);
 
 	// Anti-windup and output clamping
-	var omax = ($('#maxout').val() << 8);
-	var omin = ($('#minout').val() << 8);
+	var omax = ($('#maxout').val() << 11);
+	var omin = ($('#minout').val() << 11);
 	if(output > omax){
 		integral = integral - (output - omax);
 		output = omax;
@@ -3455,7 +3454,7 @@ function pid(temp){
 		output = omin;
 	}
 
-	output = (output >> 8);
+	output = (output >> 11);
 
 	return output;
 }
@@ -3605,8 +3604,8 @@ $(document).ready(function () {
 	<td valign="top">
 	<table>
 	<!-- <tr><td>Setpoint:</td><td><input type="text" id="sp" name="sp" maxlength="4" size="4" value="65.0">[&deg;C]</td></tr> -->
-	<tr><td>Kp:</td><td><input type="text" id="kp" name="kp" maxlength="3" size="3" value="250" title="Regulator proportional setting (0-999)"></td></tr>
-	<tr><td>Ki:</td><td><input type="text" id="ki" name="ki" maxlength="2" size="2" value="12" title="Regulator integrator setting (0-99)"></td></tr>
+	<tr><td>Kp:</td><td><input type="text" id="kp" name="kp" maxlength="3" size="3" value="400" title="Regulator proportional setting (0-999)"></td></tr>
+	<tr><td>Ki:</td><td><input type="text" id="ki" name="ki" maxlength="2" size="2" value="80" title="Regulator integrator setting (0-99)"></td></tr>
 	<tr><td>MinOut:</td><td><input type="text" id="minout" name="minout" maxlength="4" size="4" value="0" title="Limit minimum allowed output from PID (0-255)"></td></tr>
 	<tr><td>MaxOut:</td><td><input type="text" id="maxout" name="maxout" maxlength="4" size="4" value="255" title="Limit maximum allowed output from PID (0-255)"></td></tr>
 	</table>
