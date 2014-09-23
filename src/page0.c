@@ -269,7 +269,7 @@ static void pi_control(int temperature){
 		int error = eeprom_read_config(EEADR_SET_MENU_ITEM(SP)) - temperature;
 
 		integral += ((long)eeprom_read_config(EEADR_SET_MENU_ITEM(cI)) * error);	// Update integral
-		tmp_out = ((long)eeprom_read_config(EEADR_SET_MENU_ITEM(cP)) * error) << 3;	// P
+		tmp_out = ((long)eeprom_read_config(EEADR_SET_MENU_ITEM(cP)) * error) << 2;	// P
 
 		tmp_out += integral; // I
 
