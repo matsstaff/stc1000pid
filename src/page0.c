@@ -433,18 +433,22 @@ static void interrupt_service_routine(void) __interrupt 0 {
 #define START_TCONV_1()		(ADCON0 = _CHS1 | _ADON)
 #define START_TCONV_2()		(ADCON0 = _CHS0 | _ADON)
 
+/* AD filter 'hardness', must be integer between 1 and 6 */
+#define AD_FILTER_SHIFT		3
+
 static unsigned int read_ad(unsigned int adfilter){
 	ADGO = 1;
 	while(ADGO);
 	ADON = 0;
-	return ((adfilter - (adfilter >> 6)) + ((ADRESH << 8) | ADRESL));
+	return ((adfilter - (adfilter >> AD_FILTER_SHIFT)) + ((ADRESH << 8) | ADRESL));
 }
 
 static int ad_to_temp(unsigned int adfilter){
 	unsigned char i;
 	long temp = 32;
-	unsigned char a = ((adfilter >> 5) & 0x3f); // Lower 6 bits
-	unsigned char b = ((adfilter >> 11) & 0x1f); // Upper 5 bits
+	unsigned char a = ((adfilter >> (AD_FILTER_SHIFT - 1)) & 0x3f); // Lower 6 bits
+	unsigned char b = ((adfilter >> (AD_FILTER_SHIFT + 5)) & 0x1f); // Upper 5 bits
+
 
 	// Interpolate between lookup table points
 	for (i = 0; i < 64; i++) {
@@ -464,7 +468,8 @@ static int ad_to_temp(unsigned int adfilter){
  */
 void main(void) __naked {
 	unsigned int millisx60=0;
-	unsigned int ad_filter=0x7fff, ad_filter2=0x7fff;
+	unsigned int ad_filter =(0x7fff >> (6 - AD_FILTER_SHIFT));
+	unsigned int ad_filter2=(0x7fff >> (6 - AD_FILTER_SHIFT));
 
 	init();
 
