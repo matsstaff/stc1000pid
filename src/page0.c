@@ -257,9 +257,9 @@ static void update_profile(){
 long integral=0;
 unsigned volatile char output=0;
 #ifdef FAHRENHEIT
-#define PI_SCALE	12
-#else
 #define PI_SCALE	11
+#else
+#define PI_SCALE	10
 #endif
 static void pi_control(int temperature){
 	long tmp_out;
@@ -269,7 +269,7 @@ static void pi_control(int temperature){
 		int error = eeprom_read_config(EEADR_SET_MENU_ITEM(SP)) - temperature;
 
 		integral += ((long)eeprom_read_config(EEADR_SET_MENU_ITEM(cI)) * error);	// Update integral
-		tmp_out = ((long)eeprom_read_config(EEADR_SET_MENU_ITEM(cP)) * error) << 2;	// P
+		tmp_out = ((long)eeprom_read_config(EEADR_SET_MENU_ITEM(cP)) * error) << 1;	// P
 
 		tmp_out += integral; // I
 

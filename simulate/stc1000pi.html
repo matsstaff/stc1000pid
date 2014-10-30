@@ -3441,11 +3441,11 @@ function pid(temp){
 	var error = (Math.round(sp * 10.0) - Math.round(temp*10.0)); // Error
 
 	integral += ki * error;
-	output = integral + ((kp*error)<<2);
+	output = integral + ((kp*error)<<1);
 
 	// Anti-windup and output clamping
-	var omax = ($('#maxout').val() << 11);
-	var omin = ($('#minout').val() << 11);
+	var omax = ($('#maxout').val() << 10);
+	var omin = ($('#minout').val() << 10);
 	if(output > omax){
 		integral = integral - (output - omax);
 		output = omax;
@@ -3454,7 +3454,7 @@ function pid(temp){
 		output = omin;
 	}
 
-	output = (output >> 11);
+	output = (output >> 10);
 
 	return output;
 }
