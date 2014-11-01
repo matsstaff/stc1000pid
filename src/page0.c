@@ -250,6 +250,16 @@ static void update_profile(){
 	}
 }
 
+static int clamp(int v, int min, int max){
+	if(v > max){
+		return max;
+	}
+	if(v < min){
+		return min;
+	}
+	return v;
+}
+
 /* Due to a fault in SDCC, static local variables are not initialized
  * properly, so the variables below were moved from temperature_control()
  * and made global.
@@ -268,7 +278,7 @@ static void pi_control(int temperature){
 		long tmp_v;
 		int error = eeprom_read_config(EEADR_SET_MENU_ITEM(SP)) - temperature;
 
-		integral += ((long)eeprom_read_config(EEADR_SET_MENU_ITEM(cI)) * error);	// Update integral
+		integral += ((long)eeprom_read_config(EEADR_SET_MENU_ITEM(cI)) * clamp(error, -10, 10));	// Update integral
 		tmp_out = ((long)eeprom_read_config(EEADR_SET_MENU_ITEM(cP)) * error) << 1;	// P
 
 		tmp_out += integral; // I

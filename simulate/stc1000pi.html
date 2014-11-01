@@ -3431,6 +3431,16 @@ Licensed under the MIT license.
 
 <script type="text/javascript">
 
+function clamp(v, min, max){
+	if(v > max){
+		return max;
+	}
+	if(v < min){
+		return min;
+	}
+	return v;
+}
+
 var integral = 0;
 var sp;
 function pid(temp){
@@ -3440,7 +3450,7 @@ function pid(temp){
 	var ki = $('#ki').val();
 	var error = (Math.round(sp * 10.0) - Math.round(temp*10.0)); // Error
 
-	integral += ki * error;
+	integral += ki * clamp(error, -10, 10);
 	output = integral + ((kp*error)<<1);
 
 	// Anti-windup and output clamping
