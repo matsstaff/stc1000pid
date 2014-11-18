@@ -60,7 +60,34 @@
 #define STC1000PI_VERSION			100
 #define STC1000PI_EEPROM_VERSION	10
 
-#define abs(x)	((x) < 0 ? -(x) : (x))
+//#define abs(x)	((x) < 0 ? -(x) : (x))
+
+/* AD filter 'hardness', must be integer between 1 and 6 */
+#define AD_FILTER_SHIFT		3
+
+/* Derivative filter 'hardness' */
+#define D_FILTER_SHIFT	2
+
+#define REG_P_PRESCALE 4
+#define REG_I_PRESCALE 0
+#define REG_D_PRESCALE 9
+
+#ifdef FAHRENHEIT
+#define REG_POSTSCALE	13
+#else
+#define REG_POSTSCALE	12
+#endif
+
+//#define ZN_P_1000 		330UL
+#define ZN_P_1000 		200UL
+#define	ZN_I_1000		2000UL
+#define	ZN_D_1000		333UL
+
+#define PI_1000			3142UL
+
+#define ZN_P	((ZN_P_1000 * 8 * (1 << REG_POSTSCALE)) / PI_1000)
+#define ZN_I	((ZN_P_1000 * ZN_I_1000 * 8UL * (1UL << REG_POSTSCALE)) / (PI_1000 * 1000UL))
+#define ZN_D	((ZN_P_1000 * ZN_D_1000 * 8UL * (1UL << REG_POSTSCALE)) / (PI_1000 * 1000UL))
 
 /* Define limits for temperatures */
 #ifdef FAHRENHEIT
@@ -74,6 +101,8 @@
 #define TEMP_CORR_MAX	(50)
 #define TEMP_CORR_MIN	(-50)
 #endif
+
+#define NO_OF_PROFILES							5
 
 /* The data needed for the 'Set' menu
  * Using x macros to generate the data structures needed, all menu configuration can be kept in this
@@ -90,12 +119,13 @@
     _(dh, 	LED_d, 	LED_h, 	LED_OFF, 	0,				999,				0,		0)		\
     _(Pd, 	LED_P, 	LED_d, 	LED_OFF, 	0,				4,					2,		2)		\
     _(cP, 	LED_c, 	LED_P, 	LED_OFF, 	0,				999,				128,	128)	\
-    _(cI, 	LED_c, 	LED_I, 	LED_OFF, 	0,				99,					8,		8)		\
+    _(cI, 	LED_c, 	LED_I, 	LED_OFF, 	0,				999,				8,		8)		\
+    _(cd, 	LED_c, 	LED_d, 	LED_OFF, 	0,				999,				8,		8)		\
     _(OP, 	LED_O, 	LED_P, 	LED_OFF, 	0,				255,				127,	127)	\
     _(OL, 	LED_O, 	LED_L, 	LED_OFF, 	0,				255,				0,		0)		\
     _(OH, 	LED_O, 	LED_H, 	LED_OFF, 	0,				255,				255,	255)	\
     _(Pb, 	LED_P, 	LED_b, 	LED_OFF, 	0,				1,					0,		0) 		\
-    _(rn, 	LED_r, 	LED_n, 	LED_OFF, 	0,				7,					6,		6) 		\
+    _(rn, 	LED_r, 	LED_n, 	LED_OFF, 	0,				NO_OF_PROFILES+1,					NO_OF_PROFILES,		NO_OF_PROFILES) 		\
 
 #define ENUM_VALUES(name, led10ch, led1ch, led01ch, minv, maxv, dvc, dvf) \
     name,
@@ -105,7 +135,6 @@ enum set_menu_enum {
     SET_MENU_DATA(ENUM_VALUES)
 };
 
-#define NO_OF_PROFILES							6
 #define SET_MENU_ITEM_NO						NO_OF_PROFILES
 #define CONSTANT_TEMPERATURE_MODE				NO_OF_PROFILES
 #define CONSTANT_OUTPUT_MODE					(CONSTANT_TEMPERATURE_MODE+1)

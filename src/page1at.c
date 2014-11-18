@@ -38,6 +38,8 @@
 #define BTN_RELEASED(btn)			((_buttons & (btn)) == ((btn) & 0xf0))
 #define BTN_HELD_OR_RELEASED(btn)	((_buttons & (btn) & 0xf0))
 
+#if 0
+
 /* Help to convert menu item number and config item number to an EEPROM config address */
 #define EEADR_MENU_ITEM(mi, ci)	((mi)*19 + (ci))
 
@@ -87,7 +89,7 @@ static void prx_to_led(unsigned char run_mode, unsigned char is_menu){
 	led_e.e_deg = 1;
 	led_e.e_c = 1;
 	led_e.e_point = 1;
-	if(run_mode<NO_OF_PROFILES){
+	if(run_mode<6){
 		led_10.raw = LED_P;
 		led_1.raw = LED_r;
 		led_01.raw = led_lookup[run_mode];
@@ -99,7 +101,7 @@ static void prx_to_led(unsigned char run_mode, unsigned char is_menu){
 		} else {
 			led_10.raw = LED_c;
 			led_01.raw = LED_OFF;
-			if(run_mode<CONSTANT_OUTPUT_MODE){
+			if(run_mode<7){
 				led_1.raw = LED_t;
 			} else {
 				led_1.raw = LED_O;
@@ -447,3 +449,310 @@ chk_cfg_acc_label:
 	TMR1GE = (state==0);
 
 }
+#endif
+
+#if 1
+static unsigned int divu10(unsigned int n) {
+	unsigned int q, r;
+	q = (n >> 1) + (n >> 2);
+	q = q + (q >> 4);
+	q = q + (q >> 8);
+	q = q >> 3;
+	r = n - ((q << 3) + (q << 1));
+	return q + ((r + 6) >> 4);
+}
+#else
+#define divu10(x)	((x)/10)
+#endif
+
+/* Update LED globals with temperature or integer data.
+ * arguments: value (actual temperature multiplied by 10 or an integer)
+ *            decimal indicates if the value is multiplied by 10 (i.e. a temperature)
+ * return: nothing
+ */
+void value_to_led(int value, unsigned char decimal) {
+	unsigned char i;
+
+	// Handle negative values
+	if (value < 0) {
+		led_e.e_negative = 0;
+		value = -value;
+	} else {
+		led_e.e_negative = 1;
+	}
+
+	// This assumes that only temperatures and all temperatures are decimal
+	if(decimal){
+		led_e.e_deg = 0;
+#ifdef FAHRENHEIT
+		led_e.e_c = 1;
+#else
+		led_e.e_c = 0;
+#endif // FAHRENHEIT
+	}
+
+	// If temperature >= 100 we must lose decimal...
+	if (value >= 1000) {
+		value = divu10((unsigned int) value);
+		decimal = 0;
+	}
+
+	// Convert value to BCD and set LED outputs
+	if(value >= 100){
+		for(i=0; value >= 100; i++){
+			value -= 100;
+		}
+		led_10.raw = led_lookup[i & 0xf];
+	} else {
+		led_10.raw = LED_OFF; // Turn off led if zero (lose leading zeros)
+	}
+	if(value >= 10 || decimal || led_10.raw!=LED_OFF){ // If decimal, we want 1 leading zero
+		for(i=0; value >= 10; i++){
+			value -= 10;
+		}
+		led_1.raw = led_lookup[i];
+		if(decimal){
+			led_1.decimal = 0;
+		}
+	} else {
+		led_1.raw = LED_OFF; // Turn off led if zero (lose leading zeros)
+	}
+	led_01.raw = led_lookup[(unsigned char)value];
+}
+
+
+
+extern unsigned char peak_count;
+extern int base_temperature;
+extern unsigned int peaks[];
+extern int peaks_t[];
+
+extern unsigned char at_state;
+extern unsigned char output_start;
+extern unsigned char output_swing;
+extern unsigned char hyst;
+
+
+/* Set menu struct */
+struct s_setmenu {
+    unsigned char led_c_10;
+    unsigned char led_c_1;
+    unsigned char led_c_01;
+    unsigned char min;
+    unsigned char max;
+};
+
+struct s_setmenu setmenu[] = {
+	{ LED_O, LED_S, LED_OFF, 0, 255 },
+	{ LED_O, LED_d, LED_OFF, 0, 255 },
+	{ LED_h, LED_y, LED_OFF, 0, 20 }
+};
+
+#define MENU_SIZE (sizeof(setmenu) / sizeof(setmenu[0]))
+
+/* States for the menu FSM */
+enum menu_states {
+	state_idle = 0,
+
+	state_show_menu_item,
+	state_set_menu_item,
+
+	state_show_value,
+	state_set_value,
+
+	state_show_end_prg,
+	state_end_prg
+};
+
+static unsigned char state=state_idle;
+static unsigned char menu_item=0, countdown=0, item=0;
+static unsigned char _buttons = 0;
+void button_menu_fsm(){
+	{
+		unsigned char trisc, latb;
+
+		// Disable interrups while reading buttons
+		GIE = 0;
+
+		// Save registers that interferes with LED's
+		latb = LATB;
+		trisc = TRISC;
+
+		LATB = 0b00000000; // Turn off LED's
+		TRISC = 0b11011000; // Enable input for buttons
+
+		_buttons = (_buttons << 1) | RC7; // pwr
+		_buttons = (_buttons << 1) | RC4; // s
+		_buttons = (_buttons << 1) | RC6; // up
+		_buttons = (_buttons << 1) | RC3; // down
+
+		// Restore registers
+		LATB = latb;
+		TRISC = trisc;
+
+		// Reenable interrups
+		GIE = 1;
+	}
+
+	if(countdown){
+		countdown--;
+	}
+
+	switch(state){
+		case state_idle:
+			if (BTN_RELEASED(BTN_S)) {
+				if(at_state) {
+					state = state_show_end_prg;
+				} else {
+					state = state_show_menu_item;
+				}
+			}
+			if (BTN_HELD(BTN_UP)) {
+				int_to_led(peaks_t[0]);
+			}
+			if (BTN_HELD(BTN_DOWN)) {
+				int_to_led(peaks_t[1]);
+			}
+			if (BTN_HELD(BTN_PWR)) {
+				int_to_led(base_temperature);
+			}
+
+			break;
+		case state_show_menu_item:
+			led_e.e_negative = 1;
+			led_e.e_deg = 1;
+			led_e.e_c = 1;
+			if(menu_item < MENU_SIZE){
+				led_10.raw = setmenu[menu_item].led_c_10;
+				led_1.raw = setmenu[menu_item].led_c_1;
+				led_01.raw = setmenu[menu_item].led_c_01;
+			} else {
+				led_10.raw = LED_r;
+				led_1.raw = LED_n;
+				led_01.raw = LED_OFF;
+			}
+			countdown = 200;
+			state = state_set_menu_item;
+			break;
+		case state_set_menu_item:
+			if(countdown==0){
+				state = state_idle;
+			} else if(BTN_RELEASED(BTN_PWR)){
+				state = state_idle;
+			} else if(BTN_RELEASED(BTN_UP)){
+				if(menu_item >= MENU_SIZE){
+					menu_item=0;
+				} else {
+					menu_item++;
+				}
+				state = state_show_menu_item;
+			} else if(BTN_RELEASED(BTN_DOWN)){
+				if(menu_item <= 0){
+					menu_item=MENU_SIZE;
+				} else {
+					menu_item--;
+				}
+				state = state_show_menu_item;
+			} else if(BTN_RELEASED(BTN_S)){
+				state = state_show_value;
+				if(menu_item == 0){
+					item = output_start;
+				} else if(menu_item == 1){
+					item = output_swing;
+				} else if(menu_item == 2){
+					item = hyst;
+				} else if(menu_item == 3){
+					at_state = 1;
+					state = state_idle;
+				}
+			}
+			break;
+		case state_show_value:
+			if(menu_item == 2){
+				temperature_to_led(item);
+			} else {
+				int_to_led(item);
+			}
+			countdown = 200;
+			state = state_set_value;
+			break;
+		case state_set_value:
+			if(countdown==0){
+				state=state_idle;
+			} else if(BTN_RELEASED(BTN_PWR)){
+				state = state_show_menu_item;
+			} else if(BTN_HELD_OR_RELEASED(BTN_UP)) {
+				if(item>=setmenu[menu_item].max){
+					item = setmenu[menu_item].min;
+				} else {
+					item++;
+				}
+				state = state_show_value;
+			} else if(BTN_HELD_OR_RELEASED(BTN_DOWN)) {
+				if(item<=setmenu[menu_item].min){
+					item = setmenu[menu_item].max;
+				} else {
+					item--;
+				}
+				state = state_show_value;
+			} else if(BTN_RELEASED(BTN_S)){
+				if(menu_item == 0){
+					output_start = item;
+				} else if(menu_item == 1){
+					output_swing = item;
+				} else if(menu_item == 2){
+					hyst = item;
+				}
+				state = state_show_menu_item;
+			}
+			break;
+		case state_show_end_prg:
+			led_e.e_negative = 1;
+			led_e.e_deg = 1;
+			led_e.e_c = 1;
+			led_10.raw = LED_E;
+			led_1.raw = LED_n;
+			led_01.raw = LED_d;
+			countdown = 200;
+			state = state_end_prg;
+			break;
+		case state_end_prg:
+			if(countdown == 0){
+				state = state_idle;
+			} else if(BTN_RELEASED(BTN_S)){
+				at_state = 0;
+				led_e.e_point = 1;
+				state = state_idle;
+			}
+			break;		
+		default:
+			state=state_idle;
+	} // end switch
+
+	TMR1GE = (state==0);
+
+/*
+	if(BTN_RELEASED(BTN_S)){
+		TX9 = 1;
+	}
+
+	if(BTN_HELD(BTN_UP)){
+		int a = peaks[2]-peaks[0];
+		a = abs(a);
+		int_to_led(a);
+		TMR1GE = 0;
+	} else if(BTN_HELD(BTN_DOWN)){
+		int a = peaks[3]-peaks[1];
+		a = abs(a);
+		int_to_led(a);
+		TMR1GE = 0;
+	} else if(BTN_HELD(BTN_PWR)){
+		//temperature_to_led(base_temperature);
+		int_to_led(peak_count);
+		TMR1GE = 0;
+	} else {
+		TMR1GE = 1;
+	}
+*/
+}
+

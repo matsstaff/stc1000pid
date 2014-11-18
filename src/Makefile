@@ -5,6 +5,8 @@ OUTDIR=build
 DEPS = stc1000pi.h
 OBJ_C = $(OUTDIR)/page0_c.o $(OUTDIR)/page1_c.o
 OBJ_F = $(OUTDIR)/page0_f.o $(OUTDIR)/page1_f.o
+OBJ_C_AT = $(OUTDIR)/page0at_c.o $(OUTDIR)/page1at_c.o
+OBJ_F_AT = $(OUTDIR)/page0at_f.o $(OUTDIR)/page1at_f.o
 OBJ_EEPROM_C = $(OUTDIR)/eepromdata_c.o
 OBJ_EEPROM_F = $(OUTDIR)/eepromdata_f.o
 
@@ -21,13 +23,19 @@ stc1000pi_celsius: $(OBJ_C)
 stc1000pi_fahrenheit: $(OBJ_F)
 	$(CC) -o $(OUTDIR)/$@ $^ $(CFLAGS_F) $(LIBS)
 
+stc1000pi_at_celsius: $(OBJ_C_AT)
+	$(CC) -o $(OUTDIR)/$@ $^ $(CFLAGS_C) $(LIBS)
+
+stc1000pi_at_fahrenheit: $(OBJ_F_AT)
+	$(CC) -o $(OUTDIR)/$@ $^ $(CFLAGS_F) $(LIBS)
+
 eedata_celsius: $(OBJ_EEPROM_C)
 	$(CC) -o $(OUTDIR)/$@ $^ $(CFLAGS_C) $(LIBS)
 
 eedata_fahrenheit: $(OBJ_EEPROM_F)
 	$(CC) -o $(OUTDIR)/$@ $^ $(CFLAGS_F) $(LIBS)
 
-all: stc1000pi_celsius stc1000pi_fahrenheit eedata_celsius eedata_fahrenheit
+all: stc1000pi_celsius stc1000pi_fahrenheit stc1000pi_at_celsius stc1000pi_at_fahrenheit eedata_celsius eedata_fahrenheit
 
 .PHONY: clean
 
