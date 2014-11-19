@@ -1,5 +1,5 @@
-STC\-1000+ (PI)
-========
+STC\-1000+ (PID)
+================
 
 Improved firmware for mash control and Arduino based uploader for the STC-1000 dual stage thermostat.
 
@@ -15,34 +15,58 @@ Features
 * Somewhat intuitive menus for configuring
 * Button acceleration, for frustrationless programming by buttons
 
-PID
----
+PID firmware
+============
+
+Settings under the 'Set' menu:
 
 |Setting|Description|
 |-------|-----------|
-|tc|TODD|
-|tc2|TODD|
-|SP|TODD|
-|St|TODD|
-|dh|TODD|
-|cP|TODD|
-|cI|TODD|
-|cD|TODD|
-|OP|TODD|
-|OL|TODD|
-|OH|TODD|
-|Pb|TODD|
-|rn|TODD|
+|tc|Temperature correction probe 1|
+|tc2|Temperature correction probe 2|
+|SP|Setpoint|
+|St|Current profile step|
+|dh|Current profile duration (minutes)|
+|cP|PID proportional gain|
+|cI|PID integral gain|
+|cD|PID derivative gain|
+|OP|Output setting for constant output mode|
+|OL|Lower output limit (for profile/constant temp mode)|
+|OH|Upper output limit (for profile/constant temp mode)|
+|Pb|Enable second probe (currently not in use)|
+|rn|Select run mode|
 
 
 Autotune
 --------
+
+The basic algorithm the autotune firmware uses:
+
+1. Set output to 'OS' and blink LED
+2. Wait until 4 temperature readings 1 minute apart differs by no more than 'hy'
+3. If this takes longer than 30 minutes go to step 15 (fail)
+4. Otherwise store the measured temperature as a variable (lets call it 'basetemp')
+5. Set output to 'OS' - 'Od' (that is 'OS' minus 'Od') and turn LED off
+6. Wait until temperature is less than 'basetemp' - 'hy' (again that is a minus)
+7. Set output to 'OS' + 'Od' and turn LED on
+8. Find lower 'peak' (i.e. minimum measured temp value), save that time and temp
+9. Wait until temperature is greater than 'basetemp' + 'hy'
+10. Set output to 'OS' - 'Od' (that is 'OS' minus 'Od') and turn LED off
+11. Find upper 'peak' (i.e. maximum measured temp value), save that time and temp
+12. If two consecutive periods (2 maxpeaks, 2 min peaks) are found, where the peak values differ by no more than hy then go to step 16 (success)
+13. If more than 10 min-max attempts and no stable peak values are found go to step 15 (fail)
+14. Otherwise repeat from step 6
+15. Autotune failed, set output to 0, turn LED on and halt execution
+16. Autotune succeeded, set output to 0, use the amplitude and period times to calculate cP, cI and cD settings (using Ziegler Nichols 'no overshoot'), store these directly to EEPROM, turn LED off and halt execution 
+ 
+Settings in the autotune firmware:
+
 |Setting|Description|
 |-------|-----------|
-|OS|TODD|
-|Od|TODD|
-|hy|TODD|
-|rn|TODD|
+|OS|Starting output|
+|Od|Output differential|
+|hy|Temperature hysteresis|
+|rn|Start autotune|
 
 
 Updates
