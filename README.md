@@ -5,8 +5,10 @@ Improved firmware for mash control and Arduino based uploader for the STC-1000 d
 
 ![STC-1000](http://img.diytrade.com/cdimg/1066822/11467124/0/1261107339/temperature_controllers_STC-1000.jpg)
 
+**Note: This is still a work in progress. While basic regulation seems to be functional, there are kinks to be ironed out, tuning of the parameters may be needed, and finally it might not suit every system.**
+
 Features
---------
+========
 * Both Fahrenheit and Celsius versions
 * PID control of heating output
 * Selectable time period (1, 2, 4 or 8 secs)
@@ -14,6 +16,16 @@ Features
 * Each setpoint can be held for 1-999 minutes (i.e. up to ~16 hours).
 * Somewhat intuitive menus for configuring
 * Button acceleration, for frustrationless programming by buttons
+
+Uploading
+=========
+the picprog.ino sketch includes the firmware for both autotune amd pid regulator of both C and F versions. All that won't fit in the Arduino flash space, so before uploading, you need to choose either Fahrenheit or Celsius version by uncommenting (that is remove the two preceeding slashes from) **ONE** of the lines:
+<pre>
+#define FAHRENHEIT
+or
+#define CELSIUS
+</pre>
+near the top of the file.
 
 PID firmware
 ============
@@ -38,7 +50,7 @@ Settings under the 'Set' menu:
 
 
 Autotune
---------
+========
 
 The basic algorithm the autotune firmware uses:
 
