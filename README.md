@@ -29,7 +29,7 @@ Settings under the 'Set' menu:
 |dh|Current profile duration (minutes)|
 |cP|PID proportional gain|
 |cI|PID integral gain|
-|cD|PID derivative gain|
+|cd|PID derivative gain|
 |OP|Output setting for constant output mode|
 |OL|Lower output limit (for profile/constant temp mode)|
 |OH|Upper output limit (for profile/constant temp mode)|
@@ -57,7 +57,7 @@ The basic algorithm the autotune firmware uses:
 13. If more than 10 min-max attempts and no stable peak values are found go to step 15 (fail)
 14. Otherwise repeat from step 6
 15. Autotune failed, set output to 0, turn LED on and halt execution
-16. Autotune succeeded, set output to 0, use the amplitude and period times to calculate cP, cI and cD settings (using Ziegler Nichols 'no overshoot'), store these directly to EEPROM, turn LED off and halt execution 
+16. Autotune succeeded, set output to 0, use the amplitude and period times to calculate cP, cI and cd settings (using Ziegler Nichols 'no overshoot'), store these directly to EEPROM, turn LED off and halt execution 
  
 Settings in the autotune firmware:
 
