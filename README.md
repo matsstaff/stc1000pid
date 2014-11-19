@@ -5,7 +5,7 @@ Improved firmware for mash control and Arduino based uploader for the STC-1000 d
 
 ![STC-1000](http://img.diytrade.com/cdimg/1066822/11467124/0/1261107339/temperature_controllers_STC-1000.jpg)
 
-**Note: This is still a work in progress. While basic regulation seems to be functional, there are kinks to be ironed out, tuning of the parameters may be needed, and finally it might not suit every system.**
+**Note: This is still a work in progress. While basic regulation seems to be functional, there are kinks to be ironed out, tuning of the parameters may be needed, and finally it might not suit every system. Also, Fahrenheit is currently completely untested**
 
 Features
 ========
@@ -72,7 +72,11 @@ The basic algorithm the autotune firmware uses:
 14. Otherwise repeat from step 6
 15. Autotune failed, set output to 0, turn LED on and halt execution
 16. Autotune succeeded, set output to 0, use the amplitude and period times to calculate cP, cI and cd settings (using Ziegler Nichols 'no overshoot'), store these directly to EEPROM, turn LED off and halt execution 
- 
+
+Notes on using the autotune firmware. Select OS, so that the temperature is stable around the point of intended use. This might not be all that easy. You can calculate the power output using ('OS'/255)\*power, where power obviously is your heating power. For example, say you have a 2000W heater and you set 'OS' to 58. Then output will be (58/255)\*2000 or about 455 Watts. Then you just need to know that 455W is about the right amount of power you need to keep your system at a stable 67 degrees Celsius (or whatever suits your needs). It is not overly important to get this just right, but you probably want to be in the right neighbourhood at least.<br>
+Next, select 'Od' so that 'OS' + 'Od' and 'OS' - 'Od' will have a significant change in the output (but really, no more than that). Also, 'OS' - 'Od' cannot be less than 0 and 'OS' + 'Od' cannot be more than 255. Say for example you set 'Od' to 32. Then (still using 'OS' = 58 and a 2kW heater) output will swing from ((58-32)/255)\*2000 to ((58+32)/255)\*2000 (or about 204W to 705W. Again, not super critical to get the exact value correct, but choose as wisely as you can.<br>
+Hysteresis ('hy') is used in the comparisons to see if temperatures 'match'. You will need some, but use as little as possible. How much you need may depend on the system, but I'd venture to say 0.2 deg C is probably the least you'd need.
+
 Settings in the autotune firmware:
 
 |Setting|Description|
