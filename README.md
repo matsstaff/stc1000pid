@@ -21,9 +21,11 @@ Uploading
 =========
 the picprog.ino sketch includes the firmware for both autotune amd pid regulator of both C and F versions. All that won't fit in the Arduino flash space, so before uploading, you need to choose either Fahrenheit or Celsius version by uncommenting (that is remove the two preceeding slashes from) **ONE** of the lines:
 <pre>
-#define FAHRENHEIT
+//#define FAHRENHEIT
+</pre>
 or
-#define CELSIUS
+<pre>
+//#define CELSIUS
 </pre>
 near the top of the file.
 
