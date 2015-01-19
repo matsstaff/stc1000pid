@@ -274,12 +274,22 @@ static void pi_control(int temperature){
 	long tmp_out;
 
 	if(eeprom_read_config(EEADR_SET_MENU_ITEM(rn)) < CONSTANT_OUTPUT_MODE){
-		long tmp_v;
+		long tmp_v, i_tmp;
 		int error = eeprom_read_config(EEADR_SET_MENU_ITEM(SP)) - temperature;
 
-		integral += ((long)eeprom_read_config(EEADR_SET_MENU_ITEM(cI)) * error);			// Update integral
-
 		tmp_out = ((long)eeprom_read_config(EEADR_SET_MENU_ITEM(cP)) * error) << REG_P_PRESCALE;	// P
+
+		i_tmp = ((long)eeprom_read_config(EEADR_SET_MENU_ITEM(cI)) * error); // Calc integral
+		integral += i_tmp;
+
+		// Disable integral if ouside controllable region
+		{
+			int dI_t = eeprom_read_config(EEADR_SET_MENU_ITEM(dI));
+			if(error >  dI_t && error < -dI_t){
+				integral = 0;
+				i_tmp = 0;
+			}
+		}
 
 		tmp_out += (integral << REG_I_PRESCALE); // I
 
@@ -289,21 +299,28 @@ static void pi_control(int temperature){
 		// Clamp output and integral
 		tmp_v = ((long)eeprom_read_config(EEADR_SET_MENU_ITEM(OH))) << REG_POSTSCALE;
 		if(tmp_out > tmp_v){
-//			integral -= ((tmp_out - tmp_v) << REG_I_PRESCALE);
+			if(i_tmp > 0){
+				integral -= i_tmp;
+			}
 			tmp_out = tmp_v;
 		}
+#if 0
 		if(integral > (tmp_v >> REG_I_PRESCALE)){
 			integral = (tmp_v >> REG_I_PRESCALE);
 		}
-
+#endif
 		tmp_v = ((long)eeprom_read_config(EEADR_SET_MENU_ITEM(OL))) << REG_POSTSCALE;
 		if(tmp_out < tmp_v){
-//			integral += ((tmp_v - tmp_out) << REG_I_PRESCALE);
+			if(i_tmp < 0){
+				integral -= i_tmp;
+			}
 			tmp_out = tmp_v;
 		}
+#if 0
 		if(integral < (tmp_v >> REG_I_PRESCALE)){
 			integral = (tmp_v >> REG_I_PRESCALE);
 		}
+#endif
 
 		tmp_out >>= REG_POSTSCALE;
 

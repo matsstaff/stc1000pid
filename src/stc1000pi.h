@@ -95,11 +95,17 @@
 #define TEMP_MIN		(-400)
 #define TEMP_CORR_MAX	(100)
 #define TEMP_CORR_MIN	(-100)
+#define DI_MIN		(0)
+#define DI_MAX		(200)
+#define DI_DEF		(20)
 #else  // CELSIUS
 #define TEMP_MAX		(1400)
 #define TEMP_MIN		(-400)
 #define TEMP_CORR_MAX	(50)
 #define TEMP_CORR_MIN	(-50)
+#define DI_MIN		(0)
+#define DI_MAX		(100)
+#define DI_DEF		(10)
 #endif
 
 #define NO_OF_PROFILES							5
@@ -121,6 +127,7 @@
     _(cP, 	LED_c, 	LED_P, 	LED_OFF, 	0,				999,				128,	128)	\
     _(cI, 	LED_c, 	LED_I, 	LED_OFF, 	0,				999,				8,		8)		\
     _(cd, 	LED_c, 	LED_d, 	LED_OFF, 	0,				999,				8,		8)		\
+    _(dI, 	LED_d, 	LED_I, 	LED_OFF, 	DI_MIN,				DI_MAX,				DI_DEF,		DI_DEF)		\
     _(OP, 	LED_O, 	LED_P, 	LED_OFF, 	0,				255,				127,	127)	\
     _(OL, 	LED_O, 	LED_L, 	LED_OFF, 	0,				255,				0,		0)		\
     _(OH, 	LED_O, 	LED_H, 	LED_OFF, 	0,				255,				255,	255)	\
