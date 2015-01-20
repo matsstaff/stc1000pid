@@ -541,9 +541,9 @@ void main(void) __naked {
 
 				// Alarm on sensor error (AD result out of range)
 #if 0
-				LATA0 = ((ad_filter>>8) >= 248 || (ad_filter>>8) <= 8) || (eeprom_read_config(EEADR_SET_MENU_ITEM(Pb)) && ((ad_filter2>>8) >= 248 || (ad_filter2>>8) <= 8));
+				LATA0 = ((ad_filter>>(AD_FILTER_SHIFT + 2)) >= 248 || (ad_filter>>(AD_FILTER_SHIFT + 2)) <= 8) || (eeprom_read_config(EEADR_SET_MENU_ITEM(Pb)) && ((ad_filter2>>(AD_FILTER_SHIFT + 2)) >= 248 || (ad_filter2>>(AD_FILTER_SHIFT + 2)) <= 8));
 #else
-				LATA0 = ((ad_filter>>8) >= 248 || (ad_filter>>8) <= 8);
+				LATA0 = ((ad_filter>>(AD_FILTER_SHIFT + 2)) >= 248 || (ad_filter>>(AD_FILTER_SHIFT + 2)) <= 8);
 #endif
 
 				if(LATA0){ // On alarm, disable outputs

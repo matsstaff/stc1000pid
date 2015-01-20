@@ -387,6 +387,7 @@ static void autotune_fsm(){
 		case AT_DONE:
 			led_e.e_point = 1;
 			output = 0;
+			at_state = AT_IDLE;
 		break;
 		case AT_FAIL:
 			led_e.e_point = 1;

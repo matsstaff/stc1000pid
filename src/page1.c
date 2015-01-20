@@ -36,7 +36,7 @@
 #define BTN_PRESSED(btn)			((_buttons & (btn)) == ((btn) & 0x0f))
 #define BTN_HELD(btn)				((_buttons & (btn)) == (btn))
 #define BTN_RELEASED(btn)			((_buttons & (btn)) == ((btn) & 0xf0))
-#define BTN_HELD_OR_RELEASED(btn)	((_buttons & (btn) & 0xf0))
+#define BTN_HELD_OR_RELEASED(btn)		((_buttons & (btn) & 0xf0))
 
 /* Help to convert menu item number and config item number to an EEPROM config address */
 #define EEADR_MENU_ITEM(mi, ci)	((mi)*19 + (ci))
@@ -372,7 +372,7 @@ chk_skip_menu_item:
 				temperature_to_led(config_value);
 			}
 		} else /* if(menu_item == SET_MENU_ITEM_NO) */ {
-			if(config_item <= SP){
+			if(config_item <= dI){
 				temperature_to_led(config_value);
 			} else if (config_item < rn){
 				int_to_led(config_value);
