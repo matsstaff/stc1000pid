@@ -398,7 +398,7 @@ static void autotune_fsm(){
 
 }
 
-static void update_period(unsigned char period){
+void update_period(unsigned char period){
 	T2CON = ((period & 0x1) << 6) | _T2OUTPS2 | _T2OUTPS1 | _T2OUTPS0 | _TMR2ON | (((period & 0x6)>> 1) + 1);
 }
 

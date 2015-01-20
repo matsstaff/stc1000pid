@@ -274,54 +274,47 @@ static void pi_control(int temperature){
 	long tmp_out;
 
 	if(eeprom_read_config(EEADR_SET_MENU_ITEM(rn)) < CONSTANT_OUTPUT_MODE){
-		long tmp_v, i_tmp;
+		long tmp_v;
 		int error = eeprom_read_config(EEADR_SET_MENU_ITEM(SP)) - temperature;
 
 		tmp_out = ((long)eeprom_read_config(EEADR_SET_MENU_ITEM(cP)) * error) << REG_P_PRESCALE;	// P
-
-		i_tmp = ((long)eeprom_read_config(EEADR_SET_MENU_ITEM(cI)) * error); // Calc integral
-		integral += i_tmp;
-
-		// Disable integral if ouside controllable region
-		{
-			int dI_t = eeprom_read_config(EEADR_SET_MENU_ITEM(dI));
-			if(error >  dI_t && error < -dI_t){
-				integral = 0;
-				i_tmp = 0;
-			}
-		}
-
 		tmp_out += (integral << REG_I_PRESCALE); // I
-
-//		tmp_out += (((long)eeprom_read_config(EEADR_SET_MENU_ITEM(cd)) * derivative) << (REG_D_PRESCALE - D_FILTER_SHIFT));
 		tmp_out += (((long)eeprom_read_config(EEADR_SET_MENU_ITEM(cd)) * derivative) << (REG_D_PRESCALE - 6 - D_FILTER_SHIFT));
 
-		// Clamp output and integral
+		// Clamp output
 		tmp_v = ((long)eeprom_read_config(EEADR_SET_MENU_ITEM(OH))) << REG_POSTSCALE;
 		if(tmp_out > tmp_v){
-			if(i_tmp > 0){
-				integral -= i_tmp;
-			}
 			tmp_out = tmp_v;
+			if(error < 0){
+				goto calc_integral;
+			}
+			goto calc_output;
 		}
-#if 0
-		if(integral > (tmp_v >> REG_I_PRESCALE)){
-			integral = (tmp_v >> REG_I_PRESCALE);
-		}
-#endif
+
 		tmp_v = ((long)eeprom_read_config(EEADR_SET_MENU_ITEM(OL))) << REG_POSTSCALE;
 		if(tmp_out < tmp_v){
-			if(i_tmp < 0){
-				integral -= i_tmp;
-			}
 			tmp_out = tmp_v;
+			if(error > 0){
+				goto calc_integral;
+			}
+			goto calc_output;
 		}
-#if 0
-		if(integral < (tmp_v >> REG_I_PRESCALE)){
-			integral = (tmp_v >> REG_I_PRESCALE);
-		}
-#endif
 
+calc_integral:
+		// Clamp integral if outside controllable region
+		{
+			int dI_t = eeprom_read_config(EEADR_SET_MENU_ITEM(dI));
+			if(error > dI_t){
+				error = dI_t;
+			}
+			if(error < -dI_t){
+				error = -dI_t;
+			}
+			integral += ((long)eeprom_read_config(EEADR_SET_MENU_ITEM(cI)) * error); // Calc integral
+		}
+
+
+calc_output:
 		tmp_out >>= REG_POSTSCALE;
 
 	} else {
